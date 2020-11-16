@@ -1,0 +1,49 @@
+#!/usr/bin/Rscript
+
+'Basic Sequenza Analysis
+
+Usage:
+    basicSequenza [options] <sample-name> <seqz-filename>
+
+Options:
+    --kmin VAL              minimum number of probes in each segment [default: 100]
+    --gamma VAL             penalty for each discontinuity in the curve [default: 500]
+    --cellularity VAL       Cellularity to use for results generation.
+    --ploidy VAL            Ploidy to use for results generation.
+    --output-dir DIR        Directory to write output files into.
+    --verbose               Produce verbose output.
+' -> doc
+
+library(docopt)
+library(sequenza)
+
+unpack <- function(x) {
+    if (is.null(x)) {
+        x
+    } else {
+        as.numeric(x)
+    }
+}
+
+args <- docopt(doc, version = packageVersion("sequenza"))
+
+verb <- args[["--verbose"]]
+
+od <- getwd()
+if (!is.null(args[["--output-dir"]])) {
+    od <- args[["--output-dir"]]
+}
+
+seqz <- sequenza.extract(args[["<seqz-filename>"]],
+                         kmin=unpack(args[["--kmin"]]),
+                         gamma=unpack(args[["--gamma"]]),
+                         verbose=verb)
+cp <- sequenza.fit(seqz)
+sequenza.results(sequenza.extract = seqz,
+                 cp.table = cp,
+                 sample.id = args[["<sample-name>"]],
+                 out.dir = od,
+                 cellularity = unpack(args[["--cellularity"]]),
+                 ploidy = unpack(args[["--ploidy"]]))
+
+# vim: set ft=r:
